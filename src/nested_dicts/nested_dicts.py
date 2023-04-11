@@ -1,9 +1,14 @@
+#! /usr/bin/python3
+# -*- coding: utf-8 -*-
+
+from __future__ import annotations
+
 
 import abc
+from typing import Any, Callable, Hashable, List, Dict, Union
 
 
-
-class DefaultsDictABC(dict, abc.ABC,):
+class DefaultsDictABC(dict, abc.ABC):
     """ Overrides to support multiple 'default' factories, with 
         the factory function both being passed the key and 
         being selectable depending on the value 
@@ -33,7 +38,7 @@ class DefaultsDictABC(dict, abc.ABC,):
     """
 
     @abc.abstractmethod
-    def choose_factory(self, key, *args, **kwargs):
+    def choose_factory(self, key, *args, **kwargs) -> Callable[[Hashable], Any]:
         """ Called to provide the factory for a given key
             that constructs the default value for that key 
             (collections.defaultdict.__missing__ does 
@@ -65,7 +70,7 @@ class FromNestedDict(dict):
     """
 
     @classmethod
-    def from_nested_dict(cls, dict_: dict = None):
+    def from_nested_dict(cls, dict_: dict = None) -> FromNestedDict:
         
         if dict_ is None:
             dict_ = {}
@@ -76,15 +81,19 @@ class FromNestedDict(dict):
             inst[key] = cls.from_nested_dict(val) if isinstance(val, dict) else val
         return inst
 
-    def __str__(self):
+    def __repr__(self):
         """ e.g. NameOfClass({k1 : v1, k2: {other nested dict})"""
-        return f'{self.__class__.__name__}.from_nested_dict({dict.__repr__(self)})'
+        return f'{self.__class__.__name__}({dict.__repr__(self)})'
 
 
 class NestedDefaultsDict(DefaultsDictABC, FromNestedDict):
 
     @classmethod
-    def choose_factory(cls, key, *args, **kwargs):
+    def choose_factory(cls
+                      ,key
+                      ,*args
+                      ,**kwargs
+                      ) -> Callable[[Hashable], NestedDefaultsDict]:
         """ This can be done with collections.defaultdict.   
             The subclass NestedTOMLTableOrArrayOfTables
             actually uses key.
@@ -101,12 +110,18 @@ class ListKeyedDict(FromNestedDict):
        Nested instances (non-inheriting tree-only-children), must also support 
        __getitem__(list), e.g. if they are also ListKeyedDicts
     """
-      
-    def __getitem__(self, keys, *args, **kwargs):       
+    
+    _empty_list_error_message = 'Empty list: keys=%s. [] is not a valid key, unlike () '
+
+    def __getitem__(self
+                   ,keys: Union[Hashable, List]
+                   ,*args
+                   ,**kwargs
+                   ):       
         
         if isinstance(keys, list):
             if not keys:
-                raise KeyError(f'Empty list: {keys=}. [] is not a valid key, unlike () ')
+                raise KeyError(self._empty_list_error_message % keys)
 
             # Handle nesting from list of keys
             if len(keys) >= 2:
@@ -121,12 +136,15 @@ class ListKeyedDict(FromNestedDict):
         return super().__getitem__(keys, *args, **kwargs)
 
 
-    def __setitem__(self, keys, val):
+    def __setitem__(self
+                   ,keys: Union[Hashable, List]
+                   ,val: Any
+                   ):
         if not isinstance(keys, list):
             super().__setitem__(keys, val)
             return
         elif not keys:
-            raise KeyError(f'Empty list of {keys=}. [] is not a valid key, unlike () ')
+            raise KeyError(self._empty_list_error_message % keys)
 
         inst = self[keys[:-1]]
         inst[keys[-1]] = val
@@ -134,13 +152,22 @@ class ListKeyedDict(FromNestedDict):
             
         
 class ListOfListKeyedDicts(list):
-    def __getitem__(self, keys_or_indices, *args, **kwargs):
+    def __getitem__(self
+                   ,keys_or_indices: Union[int, List[int]]
+                   ,*args
+                   ,**kwargs
+                   ):
         if isinstance(keys_or_indices, list):
-            return super().__getitem__(keys_or_indices[0]).__getitem__(keys_or_indices[1:], *args, **kwargs)
+            nested = super().__getitem__(keys_or_indices[0])
+            return nested.__getitem__(keys_or_indices[1:], *args, **kwargs)
         return super().__getitem__(keys_or_indices) 
         
 
-def list_keyed_from_nested_dict_and_lists(nested):
+def list_keyed_from_nested_dict_and_lists(
+                nested: Union[List, Dict, Any]) -> Union[ListOfListKeyedDicts
+                                                        ,ListKeyedDict
+                                                        ,Any
+                                                        ]:
     if isinstance(nested, list):
         return ListOfListKeyedDicts([list_keyed_from_nested_dict_and_lists(item)
                                      for item in nested
@@ -163,7 +190,11 @@ class DottedKeyedNestedDefaultsDict(ListKeyedNestedDefaultsDict):
     """ Accepts TOML style dotted keys - e.g. root[parent.child] """
 
 
-    def __getitem__(self, key, *args, **kwargs):   
+    def __getitem__(self
+                   ,key: Hashable
+                   ,*args
+                   ,**kwargs
+                   ):   
 
 
         if not isinstance(key, str) or '.' not in key:
@@ -172,7 +203,10 @@ class DottedKeyedNestedDefaultsDict(ListKeyedNestedDefaultsDict):
         first, dot, rest = key.partition('.')       
         return super().__getitem__(first).__getitem__(rest, *args, **kwargs)
 
-    def __setitem__(self, key, val):
+    def __setitem__(self
+                   ,key: Hashable
+                   ,val: Any
+                   ):
         if not isinstance(key, str) or '.' not in key:
             super().__setitem__(key, val)
             return
@@ -189,13 +223,20 @@ class NestedTOMLTableOrArrayOfTables(NestedDefaultsDict):
     """
 
     @classmethod
-    def choose_factory(cls, key, array_of_tables = False):
+    def choose_factory(cls
+                      ,key: Hashable
+                      ,array_of_tables: bool = False
+                      ) -> Callable[[Hashable]
+                                   ,Union[TOMLArrayOfTables
+                                         ,NestedTOMLTableOrArrayOfTables
+                                         ]
+                                   ]:
         if array_of_tables:
             return lambda x: TOMLArrayOfTables(Table = cls)
         return lambda x: cls()
 
     @staticmethod
-    def is_array_of_tables_keys(keys) -> bool:
+    def is_array_of_tables_keys(keys: Union[List, Hashable]) -> bool:
         if not isinstance(keys, list):
             return False
 
@@ -204,8 +245,10 @@ class NestedTOMLTableOrArrayOfTables(NestedDefaultsDict):
         
         return True
 
-    def __getitem__(self, keys, array_of_tables = False):
-        # print(f'{keys=}')
+    def __getitem__(self
+                   ,keys: Union[List, Hashable]
+                   ,array_of_tables: bool = False
+                   ):
         
         if self.is_array_of_tables_keys(keys):
             #
@@ -218,20 +261,25 @@ class NestedTOMLTableOrArrayOfTables(NestedDefaultsDict):
         # and this avoids more complicated dunder method magic (and tricky bugs).
         # 
         # Something like this is needed to append a new empty table when 
-        # merely referring to the header, not actually calling a method on it.
+        # merely referring to the header, but not actually calling a 
+        # method on it.
         if array_of_tables and isinstance(retval, TOMLArrayOfTables):
             return retval.new_table()
 
         return retval
 
 
-class TOMLTable(NestedTOMLTableOrArrayOfTables, DottedKeyedNestedDefaultsDict):
+class TOMLTable(NestedTOMLTableOrArrayOfTables
+               ,DottedKeyedNestedDefaultsDict
+               ):
     pass
 
 
 
-class TOMLListKeyedTable(NestedTOMLTableOrArrayOfTables, ListKeyedNestedDefaultsDict):
-    def is_array_of_tables_keys(self, keys) -> bool:
+class TOMLListKeyedTable(NestedTOMLTableOrArrayOfTables
+                        ,ListKeyedNestedDefaultsDict
+                        ):   
+    def is_array_of_tables_keys(self, keys: Union[List, Hashable]) -> bool:
 
         if not super().is_array_of_tables_keys(keys):
             return False
@@ -240,25 +288,42 @@ class TOMLListKeyedTable(NestedTOMLTableOrArrayOfTables, ListKeyedNestedDefaults
 
         return isinstance(keys[0], list)
 
+    def __getitem__(self
+                   ,keys: Union[List[List[Hashable]], List[Hashable], Hashable]
+                   ,array_of_tables: bool = False
+                   ) -> Union[TOMLArrayOfTables, TOMLListKeyedTable, Any]:
+        """" The keys and return type hints are in rough one to one correspondence """
+        return super().__getitem__(keys, array_of_tables)
+
+
 
 class TOMLArrayOfTables(ListOfListKeyedDicts):
     """ Intended to be a List[Table]
     """
-    def __init__(self, Table, *args, **kwargs):
+    def __init__(self
+                ,Table: NestedTOMLTableOrArrayOfTables
+                ,*args
+                ,**kwargs
+                ):
         self.Table = Table
         super().__init__(*args, **kwargs)
 
-    def new_table(self):
+    def new_table(self) -> NestedTOMLTableOrArrayOfTables:
         table = self.Table()
         self.append(table)
         return table
 
-    def __getitem__(self, keys_or_indices, *args, **kwargs):
+    def __getitem__(self
+                   ,keys_or_indices: Union[List, Hashable, int]
+                   ,*args
+                   ,**kwargs
+                   ):
         try:
             # This will not only pass a key to a dict,
             # but also pass a list of keys and indexes 
             # to a ListKeyedDict.
-            return list.__getitem__(self, -1).__getitem__(keys_or_indices, *args, **kwargs)
+            last_table = list.__getitem__(self, -1)
+            return last_table.__getitem__(keys_or_indices, *args, **kwargs)
         except (KeyError, IndexError):
             return super().__getitem__(keys_or_indices)
 

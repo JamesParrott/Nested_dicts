@@ -11,7 +11,7 @@ authors = [
 description = "Self-nesting list-keyed dicts, multiple-defaults dicts, and TOML-style Array of Tables lists/dicts. "
 license = {file="LICENSE"}
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.7" # 3.7 for annotations
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",

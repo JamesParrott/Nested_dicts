@@ -21,6 +21,7 @@
         "replacer",
         "replacers",
         "strictyaml",
+        "subtable",
         "typeable"
     ],
     "ignoreWords": [

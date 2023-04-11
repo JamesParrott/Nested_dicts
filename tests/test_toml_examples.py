@@ -47,7 +47,17 @@ def test_toml_list_keyed_table():
 
     t[[[5,6]]]
 
-    assert t == {1: {2: {3: {'test': 'fd'}}}, 5: {6: [{}, {'a': 1, 'b': 2, 'c': 3}, {}, {}]}}
+    assert t == {1: {2: {3: {'test': 'fd'}}}
+                ,5: {6: [{}
+                        ,{'a': 1
+                         ,'b': 2
+                         ,'c': 3
+                         }
+                        ,{}
+                        ,{}
+                        ]
+                    }
+                }
 
 
 def test_same_as_TOML_docs_array_of_tables_first_example():

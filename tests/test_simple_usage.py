@@ -49,7 +49,16 @@ def test_list_keyed_nested_defaults_dict_can_be_defined_from_lists_of_keys():
                     ,'a': {}
                     }
 
-TEST_NESTED_DICTS_AND_LISTS = {4: [dict(a=1, b=2, c=3), {'r' : 67, 23: 'se', 'we': {'a' : 123}}]}
+TEST_NESTED_DICTS_AND_LISTS = {4: [dict(a=1
+                                       ,b=2
+                                       ,c=3
+                                       )
+                                  ,{'r' : 67
+                                   ,23 : 'se'
+                                   ,'we': {'a' : 123}
+                                   }
+                                  ]
+                              }
 
 def test_list_keyed_from_nested_dict_and_lists_preserves_nested_lists_and_keys():
     lolknd = list_keyed_from_nested_dict_and_lists(TEST_NESTED_DICTS_AND_LISTS)
