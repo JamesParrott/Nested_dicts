@@ -1,4 +1,6 @@
-# Nested Dicts - Python multiple-defaults and list-keyed dict subclasses
+# Nested Dicts
+
+Python multiple-default dicts, list-keyed dicts, dotted-key dicts and Array of Tables dict subclasses
 
 *pip install nested_dicts*
 
@@ -8,7 +10,7 @@
 ### DefaultsDictABC
 Implement the choose_factory method on a subclass 
 to select a factory.  The returned factory is itself 
-called with the key value, unlike collections.defaultdict.
+called with the key value (unlike collections.defaultdict.__missing__)
 
 *The following 4 examples all define a dictionary subclass `d` for which
 `d == {'k': {'sub_dict_key': 'v'}}` is True.*
