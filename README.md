@@ -1,6 +1,6 @@
 # Nested Dicts
 
-Python multiple-default dicts, list-keyed dicts, dotted-key dicts and Array of Tables dict subclasses
+Python multiple-default dicts, list-keyed dicts, dotted-key dicts and Arrays of Tables classes.
 
 *pip install nested_dicts*
 
