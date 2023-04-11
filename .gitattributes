@@ -1,0 +1,9 @@
+# force everything to be LF, except for Windows batch files that require CRLF
+# 
+# https://code.visualstudio.com/docs/remote/troubleshooting#_resolving-git-line-ending-issues-in-wsl-resulting-in-many-modified-files
+* text=auto eol=lf
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
+
+# Ensure Python is the language used shown on Github 
+*.py linguist-language=Python
