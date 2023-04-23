@@ -32,6 +32,23 @@ def test_simple_toml_table_with_nested_array_of_tables():
     print(p)
     assert p == {'a': [{'b': 2, 'c': 3, 'd': [{'e': 5, 'f': 6}]}]}
 
+def test_simple_toml_table_with_dotted_key_and_nested_array_of_tables():
+
+    p = TOMLTable()
+
+    p['ijk.lmn.opq.rst'] = 634
+
+    p[['a']].update(
+        b=2,
+        c=3
+    )
+    p[['a.d']].update(
+        e=5,
+        f=6
+    )
+    print(p)
+    assert p == {'ijk': {'lmn': {'opq': {'rst' : 634}}}, 'a': [{'b': 2, 'c': 3, 'd': [{'e': 5, 'f': 6}]}]}
+
 
 def test_toml_list_keyed_table():
 

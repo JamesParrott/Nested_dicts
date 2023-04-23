@@ -272,7 +272,11 @@ class NestedTOMLTableOrArrayOfTables(NestedDefaultsDict):
 class TOMLTable(NestedTOMLTableOrArrayOfTables
                ,DottedKeyedNestedDefaultsDict
                ):
-    pass
+    """ Note, sub tables are also TOMLTables, so using a reference to one
+        it can also be accessed and mutated using nested_dicts Table 
+        Headers and Array of Headers notation, which is only valid
+        in pure TOML for the root table.
+    """
 
 
 
