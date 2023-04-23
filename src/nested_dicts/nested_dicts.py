@@ -187,7 +187,11 @@ class ListKeyedNestedDefaultsDict(ListKeyedDict, NestedDefaultsDict):
 
 
 class DottedKeyedNestedDefaultsDict(ListKeyedNestedDefaultsDict):
-    """ Accepts TOML style dotted keys - e.g. root[parent.child] """
+    """ Accepts TOML style dotted keys - e.g. root[parent.child].
+    
+        Note, splits keys on dots in quoted strings, i.e.
+        root['"b.c"'] creates a table at root['"b']['c"'].
+    """
 
 
     def __getitem__(self
