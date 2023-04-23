@@ -274,8 +274,8 @@ class TOMLTable(NestedTOMLTableOrArrayOfTables
                ):
     """ Note, sub tables are also TOMLTables, so using a reference to one
         it can also be accessed and mutated using nested_dicts Table 
-        Headers and Array of Tables Headers notation, which is only valid
-        in pure TOML for the root table.
+        Headers ([...]) and Array of Tables Headers notation ([[...]]), 
+        which in pure TOML is only valid for the root table.
     """
 
 
